@@ -6,6 +6,26 @@ The `skuld` command-line utility is meant to be used by developers interacting w
 
 Together with appropriate IAM policies, `skuld` can enforce the use of an MFA device to manipulate the AWS SDK from a developer's machine.
 
+## Installation
+
+On Mac OS X, you can use [brew](https://brew.sh) to install `skuld`.
+
+```
+$ brew tap DEEP-IMPACT-AG/hyperdrive
+$ brew install skuld
+```
+
+On Windows, you can use [scoop](https://scoop.sh) to install `skuld`.
+
+```
+$ scoop bucket add hyperdrive https://github.com/DEEP-IMPACT-AG/scoop-hyperdrive.git
+$ scoop install skuld
+```
+
+For Linux, you can install manually by downloading from [latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
+
+Finally, you can install it from the sources via `go get`. You will need Go 1.10.
+
 ## Preparation
 
 Before using `skuld`, you must create an IAM user, assign an MFA device to it and create an Access Key for it. Refer to the [IAM documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html) of AWS.
