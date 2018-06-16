@@ -1,14 +1,9 @@
 #!/bin/bash
-
-set +e
-
-git describe --exact-match --tags HEAD
-ON_TAG=$?
-
 set -e
 
-if [ "${ON_TAG}" -eq "0" ]; then
-	curl -sL https://git.io/goreleaser | bash
-else
+if [ -z ${CIRCLE_TAG} ]; then
 	echo "No Tag = No Release"
+else
+	echo "Release: ${CIRCLE_TAG}"
+	curl -sL https://git.io/goreleaser | bash
 fi

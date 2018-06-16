@@ -1,7 +1,6 @@
 # .goreleaser.yml
 builds:
-  - binary: skuld
-    goos:
+  - goos:
       - windows
       - darwin
       - linux
