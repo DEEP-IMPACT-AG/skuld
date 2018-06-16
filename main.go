@@ -16,7 +16,9 @@ import (
 	"path/filepath"
 )
 
-const version = "2.0.0"
+var (
+	version = "dev"
+)
 const admDuration = 3600
 const standardDuration = 36000
 
