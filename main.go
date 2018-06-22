@@ -19,6 +19,7 @@ import (
 var (
 	version = "dev"
 )
+
 const admDuration = 3600
 const standardDuration = 36000
 
@@ -35,10 +36,10 @@ func main() {
 	}
 	iamc := iam.New(cfg)
 	stsc := sts.New(cfg)
-	username := username(stsc)
-	mfaDevice := mfaDevice(iamc, username)
+	arnChan := mfaDeviceArnChan(stsc, iamc)
 	tokenCode := tokenCode()
-	credentials := sessionCredentials(stsc, mfaDevice, tokenCode, duration(profile))
+	mfaDeviceArn := pullMfaDeviceArn(arnChan)
+	credentials := sessionCredentials(stsc, mfaDeviceArn, tokenCode, duration(profile))
 	storeCredentials(profile, region, credentials)
 	storeConfig(profile, region)
 	fmt.Printf("Credentials valid until: %s\n", credentials.Expiration)
@@ -76,24 +77,52 @@ func printVersion() {
 	fmt.Printf("Skuld version: %s\n", version)
 }
 
-func username(stsc *sts.STS) string {
-	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send()
-	if err != nil {
-		panic("Unable to get the username.")
-	}
-	arn := callerIdResp.Arn
-	return strings.Split(*arn, ":user/")[1]
+type arn struct {
+	arn   string
+	error interface{}
 }
 
-func mfaDevice(iamc *iam.IAM, userArn string) string {
+func mfaDeviceArnChan(stsc *sts.STS, iamc *iam.IAM) chan arn {
+	result := make(chan arn)
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				result <- arn{error: err}
+			}
+		}()
+		deviceArn := mfaDeviceArn(stsc, iamc)
+		result <- arn{arn: deviceArn}
+	}()
+	return result;
+}
+
+func mfaDeviceArn(stsc *sts.STS, iamc *iam.IAM) string {
+	userArn := userArn(stsc)
 	mfaDevice, err := iamc.ListMFADevicesRequest(
 		&iam.ListMFADevicesInput{UserName: &userArn},
 	).Send()
 	if err != nil {
 		println(err.Error())
-		panic("Unable to fetch the MFA device")
+		panic("Unable to fetch the MFA device Arn.")
 	}
 	return *mfaDevice.MFADevices[0].SerialNumber
+}
+
+func userArn(stsc *sts.STS) string {
+	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send()
+	if err != nil {
+		panic("Unable to get the userArn.")
+	}
+	arn := callerIdResp.Arn
+	return strings.Split(*arn, ":user/")[1]
+}
+
+func pullMfaDeviceArn(arn chan arn) string {
+	mfaDeviceArn := <-arn
+	if mfaDeviceArn.error != nil {
+		panic(mfaDeviceArn.error)
+	}
+	return mfaDeviceArn.arn
 }
 
 func duration(profile string) int64 {
