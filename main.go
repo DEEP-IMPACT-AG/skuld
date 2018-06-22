@@ -36,13 +36,10 @@ func main() {
 	}
 	iamc := iam.New(cfg)
 	stsc := sts.New(cfg)
-	arn := mfaDeviceArnChan(stsc, iamc)
+	arnChan := mfaDeviceArnChan(stsc, iamc)
 	tokenCode := tokenCode()
-	mfaDeviceArn := <-arn
-	if mfaDeviceArn.error != nil {
-		panic(mfaDeviceArn.error)
-	}
-	credentials := sessionCredentials(stsc, mfaDeviceArn.arn, tokenCode, duration(profile))
+	mfaDeviceArn := pullMfaDeviceArn(arnChan)
+	credentials := sessionCredentials(stsc, mfaDeviceArn, tokenCode, duration(profile))
 	storeCredentials(profile, region, credentials)
 	storeConfig(profile, region)
 	fmt.Printf("Credentials valid until: %s\n", credentials.Expiration)
@@ -118,6 +115,14 @@ func userArn(stsc *sts.STS) string {
 	}
 	arn := callerIdResp.Arn
 	return strings.Split(*arn, ":user/")[1]
+}
+
+func pullMfaDeviceArn(arn chan arn) string {
+	mfaDeviceArn := <-arn
+	if mfaDeviceArn.error != nil {
+		panic(mfaDeviceArn.error)
+	}
+	return mfaDeviceArn.arn
 }
 
 func duration(profile string) int64 {
