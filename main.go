@@ -18,6 +18,7 @@ import (
 
 var (
 	version = "dev"
+	verbose *bool
 )
 
 const admDuration = 3600
@@ -25,6 +26,7 @@ const standardDuration = 36000
 
 func main() {
 	profile, region := parseArguments()
+	vPrintln("Loading the AWS profile %s", profile)
 	cfg, err := external.LoadDefaultAWSConfig(
 		external.WithSharedConfigProfile(profile),
 	)
@@ -34,6 +36,7 @@ func main() {
 	if len(region) == 0 {
 		region = cfg.Region
 	}
+	vPrintln("Using the AWS Region %s", region)
 	iamc := iam.New(cfg)
 	stsc := sts.New(cfg)
 	arnChan := mfaDeviceArnChan(stsc, iamc)
@@ -48,7 +51,8 @@ func main() {
 func parseArguments() (string, string) {
 	flag.Usage = printUsage
 	region := flag.String("r", "", "Override the AWS Region")
-	version := flag.Bool("v", false, "Print the skuld version")
+	version := flag.Bool("V", false, "Print the skuld version")
+	verbose = flag.Bool("v", false, "Print verbose log")
 	help := flag.Bool("h", false, "Print this help message")
 	flag.Parse()
 	tail := flag.Args()
@@ -98,6 +102,7 @@ func mfaDeviceArnChan(stsc *sts.STS, iamc *iam.IAM) chan arn {
 
 func mfaDeviceArn(stsc *sts.STS, iamc *iam.IAM) string {
 	userArn := userArn(stsc)
+	vPrintln("Fetching MFA Device Arn")
 	mfaDevice, err := iamc.ListMFADevicesRequest(
 		&iam.ListMFADevicesInput{UserName: &userArn},
 	).Send()
@@ -109,6 +114,7 @@ func mfaDeviceArn(stsc *sts.STS, iamc *iam.IAM) string {
 }
 
 func userArn(stsc *sts.STS) string {
+	vPrintln("Fetching IAM User Arn")
 	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send()
 	if err != nil {
 		panic("Unable to get the userArn.")
@@ -136,6 +142,7 @@ func tokenCode() string {
 	var tokenCode string
 	fmt.Print("Enter your token: ")
 	fmt.Scanf("%s", &tokenCode)
+	fmt.Println("Fetching temporary credentials...")
 	return tokenCode
 }
 
@@ -194,5 +201,12 @@ func storeConfig(profile string, region string) {
 	err = config.SaveTo(configFile)
 	if err != nil {
 		panic("Unable to save the config file")
+	}
+}
+
+func vPrintln(format string, a ... interface{}) {
+	if *verbose {
+		fmt.Printf(format, a...)
+		fmt.Println("")
 	}
 }
