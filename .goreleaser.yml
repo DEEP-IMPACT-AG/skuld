@@ -1,6 +1,9 @@
 # .goreleaser.yml
+project_name: skuld
+
 builds:
-  - goos:
+  - binary: skuld
+    goos:
       - windows
       - darwin
       - linux
@@ -27,3 +30,9 @@ scoop:
   homepage: "https://github.com/DEEP-IMPACT-AG/skuld"
   description: "CLI tool for AWS MFA credentials"
   license: Apache 2.0
+
+snapcraft:
+  summary: "CLI tool for AWS MFA credentials"
+  description: "CLI tool for AWS MFA credentials"
+  grade: stable
+  confinement: classic

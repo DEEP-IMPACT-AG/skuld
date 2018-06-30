@@ -22,9 +22,20 @@ $ scoop bucket add hyperdrive https://github.com/DEEP-IMPACT-AG/scoop-hyperdrive
 $ scoop install skuld
 ```
 
-For Linux, you can install manually by downloading from [latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
+On Linux, you can use [snapcraft](https://snapcraft.io) to install
+`skuld`. `skuld` needs classic containment to access the folder `~/.aws`
+where the credential files are stored.
 
-Finally, you can install it from the sources via `go get`. You will need Go 1.10.
+```
+$ sudo snap install skuld --classic --edge
+```
+
+
+You can also install it manually by downloading from
+[latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
+
+Finally, you can install it from the sources via `go get`. You will need
+Go 1.10.
 
 ## Preparation
 

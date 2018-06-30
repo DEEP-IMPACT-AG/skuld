@@ -2,8 +2,8 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10
-    working_directory: /go/src/github.com/stanislas/grt
+      - image: deepimpact/go-snapcraft-builder:1.0.0
+    working_directory: /go/src/github.com/DEEP-IMPACT-AG/skuld
     steps:
       - checkout
       - run: ./build/build.sh
