@@ -34,5 +34,5 @@ scoop:
 snapcraft:
   summary: "CLI tool for AWS MFA credentials"
   description: "CLI tool for AWS MFA credentials"
-  grade: stable
+  grade: devmode
   confinement: classic
