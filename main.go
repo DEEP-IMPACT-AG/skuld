@@ -36,6 +36,10 @@ func main() {
 	if len(region) == 0 {
 		region = cfg.Region
 	}
+	_, err = cfg.Credentials.Retrieve()
+	if err != nil {
+		panic("unable to retrieve credentials from profile")
+	}
 	vPrintln("Using the AWS Region %s", region)
 	iamc := iam.New(cfg)
 	stsc := sts.New(cfg)
