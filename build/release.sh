@@ -12,5 +12,5 @@ else
     snapcraft login --with credentials
     rm credentials
 	goreleaser
-	find dist -name "skuld*.snap" | xargs snapcraft push
+	find dist -name "skuld*.snap" | xargs snapcraft push --release edge
 fi
