@@ -4,16 +4,17 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/mitchellh/go-homedir"
-	"strings"
-	"fmt"
 	"gopkg.in/ini.v1"
-	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -90,7 +91,7 @@ type arn struct {
 	error interface{}
 }
 
-func mfaDeviceArnChan(stsc *sts.STS, iamc *iam.IAM) chan arn {
+func mfaDeviceArnChan(stsc *sts.Client, iamc *iam.Client) chan arn {
 	result := make(chan arn)
 	go func() {
 		defer func() {
@@ -104,12 +105,12 @@ func mfaDeviceArnChan(stsc *sts.STS, iamc *iam.IAM) chan arn {
 	return result;
 }
 
-func mfaDeviceArn(stsc *sts.STS, iamc *iam.IAM) string {
+func mfaDeviceArn(stsc *sts.Client, iamc *iam.Client) string {
 	userArn := userArn(stsc)
 	vPrintln("Fetching MFA Device Arn")
 	mfaDevice, err := iamc.ListMFADevicesRequest(
 		&iam.ListMFADevicesInput{UserName: &userArn},
-	).Send()
+	).Send(context.TODO())
 	if err != nil {
 		println(err.Error())
 		panic("Unable to fetch the MFA device Arn.")
@@ -117,9 +118,9 @@ func mfaDeviceArn(stsc *sts.STS, iamc *iam.IAM) string {
 	return *mfaDevice.MFADevices[0].SerialNumber
 }
 
-func userArn(stsc *sts.STS) string {
+func userArn(stsc *sts.Client) string {
 	vPrintln("Fetching IAM User Arn")
-	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send()
+	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send(context.TODO())
 	if err != nil {
 		panic("Unable to get the userArn.")
 	}
@@ -145,17 +146,20 @@ func duration(profile string) int64 {
 func tokenCode() string {
 	var tokenCode string
 	fmt.Print("Enter your token: ")
-	fmt.Scanf("%s", &tokenCode)
+	_, err := fmt.Scanf("%s", &tokenCode)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println("Fetching temporary credentials...")
 	return tokenCode
 }
 
-func sessionCredentials(stsc *sts.STS, mfaDevice string, tokenCode string, duration int64) *sts.Credentials {
+func sessionCredentials(stsc *sts.Client, mfaDevice string, tokenCode string, duration int64) *sts.Credentials {
 	token, err := stsc.GetSessionTokenRequest(&sts.GetSessionTokenInput{
 		SerialNumber:    &mfaDevice,
 		DurationSeconds: &duration,
 		TokenCode:       &tokenCode,
-	}).Send()
+	}).Send(context.TODO())
 	if err != nil {
 		println(err.Error())
 		panic("Unable to create a new session.")
