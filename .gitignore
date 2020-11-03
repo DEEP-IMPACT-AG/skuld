@@ -16,3 +16,9 @@
 
 # Goland
 /.idea
+
+# Output binary
+skuld
+
+# Nix builds
+/result
