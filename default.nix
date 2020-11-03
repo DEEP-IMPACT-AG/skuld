@@ -14,8 +14,6 @@ buildGoModule rec {
 
   vendorSha256 = "LxSeLzkseBpV4Pqs+rnlBKMNOIpkpa5uZiImkVVF1SI=";
 
-  modSha256 = stdenv.lib.fakeSha256;
-
   subPackages = ["."];
 
   runVend = false;
@@ -24,6 +22,5 @@ buildGoModule rec {
     description = "CLI utility to help developers use 2FA with AWS";
     homepage = "https://github.com/DEEP-IMPACT-AG/skuld";
     license = licenses.asl20;
-    platforms = platforms.linux ++ platforms.darwin;
   };
 }
