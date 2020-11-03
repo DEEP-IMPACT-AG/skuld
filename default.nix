@@ -1,5 +1,4 @@
-# { buildGoModule, lib, fetchFromGitHub, stdenv }:
-with import <nixpkgs> {};
+{ buildGoModule, lib, fetchFromGitHub, stdenv, ... }:
 
 buildGoModule rec {
   pname = "skuld";
@@ -25,7 +24,6 @@ buildGoModule rec {
     description = "CLI utility to help developers use 2FA with AWS";
     homepage = "https://github.com/DEEP-IMPACT-AG/skuld";
     license = licenses.asl20;
-    # maintainers = with maintainers; [ kalbasit ];
     platforms = platforms.linux ++ platforms.darwin;
   };
 }
