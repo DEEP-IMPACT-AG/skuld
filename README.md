@@ -34,6 +34,8 @@ $ sudo snap install skuld --classic --edge
 You can also install it manually by downloading from
 [latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
 
+On Nix/NixOS you can add an overlay that calls default.nix to add the binary to your path.
+
 Finally, you can install it from the sources via `go get`. You will need
 Go 1.10.
 
