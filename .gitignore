@@ -19,3 +19,6 @@
 
 # Output binary
 skuld
+
+# Nix builds
+/result
