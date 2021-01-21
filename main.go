@@ -7,9 +7,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/iam"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"github.com/mitchellh/go-homedir"
 	"gopkg.in/ini.v1"
 	"os"
@@ -28,8 +29,9 @@ const standardDuration = 36000
 func main() {
 	profile, region := parseArguments()
 	vPrintln("Loading the AWS profile %s", profile)
-	cfg, err := external.LoadDefaultAWSConfig(
-		external.WithSharedConfigProfile(profile),
+	cfg, err := config.LoadDefaultConfig(
+		context.TODO(),
+		config.WithSharedConfigProfile(profile),
 	)
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
@@ -37,13 +39,13 @@ func main() {
 	if len(region) == 0 {
 		region = cfg.Region
 	}
-	_, err = cfg.Credentials.Retrieve()
+	_, err = cfg.Credentials.Retrieve(context.TODO())
 	if err != nil {
 		panic("unable to retrieve credentials from profile")
 	}
 	vPrintln("Using the AWS Region %s", region)
-	iamc := iam.New(cfg)
-	stsc := sts.New(cfg)
+	iamc := iam.NewFromConfig(cfg)
+	stsc := sts.NewFromConfig(cfg)
 	arnChan := mfaDeviceArnChan(stsc, iamc)
 	tokenCode := tokenCode()
 	mfaDeviceArn := pullMfaDeviceArn(arnChan)
@@ -102,15 +104,16 @@ func mfaDeviceArnChan(stsc *sts.Client, iamc *iam.Client) chan arn {
 		deviceArn := mfaDeviceArn(stsc, iamc)
 		result <- arn{arn: deviceArn}
 	}()
-	return result;
+	return result
 }
 
 func mfaDeviceArn(stsc *sts.Client, iamc *iam.Client) string {
 	userArn := userArn(stsc)
 	vPrintln("Fetching MFA Device Arn")
-	mfaDevice, err := iamc.ListMFADevicesRequest(
+	mfaDevice, err := iamc.ListMFADevices(
+		context.TODO(),
 		&iam.ListMFADevicesInput{UserName: &userArn},
-	).Send(context.TODO())
+	)
 	if err != nil {
 		println(err.Error())
 		panic("Unable to fetch the MFA device Arn.")
@@ -119,8 +122,11 @@ func mfaDeviceArn(stsc *sts.Client, iamc *iam.Client) string {
 }
 
 func userArn(stsc *sts.Client) string {
-	vPrintln("Fetching IAM User Arn")
-	callerIdResp, err := stsc.GetCallerIdentityRequest(nil).Send(context.TODO())
+	vPrintln("Fetching Client User Arn")
+	callerIdResp, err := stsc.GetCallerIdentity(
+		context.TODO(),
+		nil,
+	)
 	if err != nil {
 		panic("Unable to get the userArn.")
 	}
@@ -136,7 +142,7 @@ func pullMfaDeviceArn(arn chan arn) string {
 	return mfaDeviceArn.arn
 }
 
-func duration(profile string) int64 {
+func duration(profile string) int32 {
 	if strings.HasSuffix(profile, "-adm") {
 		return admDuration
 	}
@@ -154,12 +160,15 @@ func tokenCode() string {
 	return tokenCode
 }
 
-func sessionCredentials(stsc *sts.Client, mfaDevice string, tokenCode string, duration int64) *sts.Credentials {
-	token, err := stsc.GetSessionTokenRequest(&sts.GetSessionTokenInput{
-		SerialNumber:    &mfaDevice,
-		DurationSeconds: &duration,
-		TokenCode:       &tokenCode,
-	}).Send(context.TODO())
+func sessionCredentials(stsc *sts.Client, mfaDevice string, tokenCode string, duration int32) *types.Credentials {
+	token, err := stsc.GetSessionToken(
+		context.TODO(),
+		&sts.GetSessionTokenInput{
+			SerialNumber:    &mfaDevice,
+			DurationSeconds: &duration,
+			TokenCode:       &tokenCode,
+		},
+	)
 	if err != nil {
 		println(err.Error())
 		panic("Unable to create a new session.")
@@ -167,7 +176,7 @@ func sessionCredentials(stsc *sts.Client, mfaDevice string, tokenCode string, du
 	return token.Credentials
 }
 
-func storeCredentials(profile string, region string, credentials *sts.Credentials) {
+func storeCredentials(profile string, region string, credentials *types.Credentials) {
 	credsFile := awsFile("credentials")
 	creds, err := ini.Load(credsFile)
 	if err != nil {
@@ -212,7 +221,7 @@ func storeConfig(profile string, region string) {
 	}
 }
 
-func vPrintln(format string, a ... interface{}) {
+func vPrintln(format string, a ...interface{}) {
 	if *verbose {
 		fmt.Printf(format, a...)
 		fmt.Println("")
