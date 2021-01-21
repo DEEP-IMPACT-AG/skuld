@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: deepimpact/go-snapcraft-builder:1.0.2
+      - image: deepimpact/go-snapcraft-builder:1.0.3
     working_directory: /go/src/github.com/DEEP-IMPACT-AG/skuld
     steps:
       - checkout
