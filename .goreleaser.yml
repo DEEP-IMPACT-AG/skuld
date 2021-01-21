@@ -1,24 +1,22 @@
-# .goreleaser.yml
-project_name: skuld
-
+before:
+  hooks:
+    - go mod download
 builds:
   - binary: skuld
     goos:
+      - linux
       - windows
       - darwin
-      - linux
     goarch:
       - amd64
 
-brew:
-  github:
-      owner: DEEP-IMPACT-AG
-      name: homebrew-hyperdrive
-  commit_author:
-      name: codebuild
-      email: info@deep-impact.ch
-  homepage: "https://github.com/DEEP-IMPACT-AG/skuld"
-  description: "CLI tool for AWS MFA credentials"
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
 
 scoop:
   bucket:
@@ -31,8 +29,19 @@ scoop:
   description: "CLI tool for AWS MFA credentials"
   license: Apache 2.0
 
-snapcraft:
-  summary: "CLI tool for AWS MFA credentials"
-  description: "CLI tool for AWS MFA credentials"
-  grade: devel
-  confinement: classic
+brews:
+  - tap:
+      owner: DEEP-IMPACT-AG
+      name: homebrew-hyperdrive
+    commit_author:
+      name: codebuild
+      email: info@deep-impact.ch
+    homepage: "https://github.com/DEEP-IMPACT-AG/skuld"
+    description: "CLI tool for AWS MFA credentials"
+
+snapcrafts:
+  - summary: "CLI toon for AWS MFA credentials"
+    description: "CLI toon for AWS MFA credentials"
+    grade: devel
+    confinement: classic
+    publish: true
