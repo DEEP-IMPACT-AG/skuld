@@ -39,9 +39,9 @@ brews:
     homepage: "https://github.com/DEEP-IMPACT-AG/skuld"
     description: "CLI tool for AWS MFA credentials"
 
-snapcrafts:
-  - summary: "CLI toon for AWS MFA credentials"
-    description: "CLI toon for AWS MFA credentials"
-    grade: devel
-    confinement: classic
-    publish: true
+      #snapcrafts:
+      #  - summary: "CLI toon for AWS MFA credentials"
+      #    description: "CLI toon for AWS MFA credentials"
+      #    grade: devel
+      #    confinement: classic
+      #    publish: true
