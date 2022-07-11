@@ -35,6 +35,12 @@ You can also install it manually by downloading from
 [latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
 
 On Nix/NixOS you can add an overlay that calls default.nix to add the binary to your path.
+You can use the provided Flake to run it easily with:
+```
+  nix run github:DEEP-IMPACT-AG/skuld
+  # or install with:
+  nix profile install github:DEEP-IMPACT-AG/skuld
+```
 You can try building it locally via:
 ```
 nix-build -E '(import <nixpkgs> {}).callPackage ./default.nix {}'
