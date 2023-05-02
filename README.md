@@ -8,7 +8,13 @@ Together with appropriate IAM policies, `skuld` can enforce the use of an MFA de
 
 ## Installation
 
-On Mac OS X, you can use [brew](https://brew.sh) to install `skuld`.
+On Mac OS X, you can use ~~[brew](https://brew.sh)~~ Nix to install `skuld`.
+
+```
+$ nix profile install github:DEEP-IMPACT-AG/skuld
+```
+
+### OLD: Brew is broken
 
 ```
 $ brew tap DEEP-IMPACT-AG/hyperdrive
