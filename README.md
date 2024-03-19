@@ -8,17 +8,14 @@ Together with appropriate IAM policies, `skuld` can enforce the use of an MFA de
 
 ## Installation
 
-On Mac OS X, you can use ~~[brew](https://brew.sh)~~ Nix to install `skuld`.
+There are many ways that you can install `skuld`. Below are 3 options given:
+
+### Option 1: Binaries
+
+On macOS, you can use Nix to install `skuld`.
 
 ```
 $ nix profile install github:DEEP-IMPACT-AG/skuld
-```
-
-### OLD: Brew is broken
-
-```
-$ brew tap DEEP-IMPACT-AG/hyperdrive
-$ brew install skuld
 ```
 
 On Windows, you can use [scoop](https://scoop.sh) to install `skuld`.
@@ -28,32 +25,49 @@ $ scoop bucket add hyperdrive https://github.com/DEEP-IMPACT-AG/scoop-hyperdrive
 $ scoop install skuld
 ```
 
-On Linux, you can use [snapcraft](https://snapcraft.io) to install
-`skuld`. `skuld` needs classic containment to access the folder `~/.aws`
+On Linux, you can use [snapcraft](https://snapcraft.io) to install `skuld`. `skuld` needs classic containment to access the folder `~/.aws`
 where the credential files are stored.
 
 ```
 $ sudo snap install skuld --classic --edge
 ```
 
+### Option 2: Easy, with Docker
 
-You can also install it manually by downloading from
-[latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
+For all platforms (Linux, macOS, Windows, Raspberry Pi, Nvidia Jetson, etc) that have **docker** installed, this is the zero installation method. Just run once to add the alias in your `${HOME}/.profile` or `${HOME}/.bashrc` file:
+
+```sh
+echo "alias skuld='docker run -it --rm -v ${HOME}/.aws:/root/.aws deepimpact/skuld:latest skuld'" >> ${HOME}/.profile
+```
+
+That's it!  You can call `skuld` from the command line, like it was installed natively on your system.
+
+### Option 3: Manual installation
+
+You can also install it manually by downloading from [latest release page](https://github.com/DEEP-IMPACT-AG/skuld/releases/latest).
 
 On Nix/NixOS you can add an overlay that calls default.nix to add the binary to your path.
 You can use the provided Flake to run it easily with:
-```
-  nix run github:DEEP-IMPACT-AG/skuld
-  # or install with:
-  nix profile install github:DEEP-IMPACT-AG/skuld
-```
-You can try building it locally via:
-```
-nix-build -E '(import <nixpkgs> {}).callPackage ./default.nix {}'
+
 ```
 
-Finally, you can install it from the sources via `go get`. You will need
-Go 1.10.
+nix run github:DEEP-IMPACT-AG/skuld
+
+# or install with:
+
+nix profile install github:DEEP-IMPACT-AG/skuld
+
+```
+
+You can try building it locally via:
+
+```
+
+nix-build -E '(import <nixpkgs> {}).callPackage ./default.nix {}'
+
+```
+
+Finally, you can install it from the sources via `go get`. You will need Go 1.10.
 
 ## Preparation
 
@@ -86,12 +100,12 @@ To request temporary credentials, use `skuld` at the shell as follows:
 
 ```
 $ skuld <profile-name>
-Enter your token: 
+Enter your token:
 ```
 
 When prompted by `Enter your token: `, enter the token of your MFA device and press the enter key.
 
-`skuld` will fetch temporary credentials and create a new profile named  `<profile-name>-skuld` with them (i.e. the new profile's name is the original profile name with the suffix `-skuld`). If the skuld profile already exists, it will be overwritten with the new temporary credentials.
+`skuld` will fetch temporary credentials and create a new profile named `<profile-name>-skuld` with them (i.e. the new profile's name is the original profile name with the suffix `-skuld`). If the skuld profile already exists, it will be overwritten with the new temporary credentials.
 
 `skuld` also ouputs the expiring time of the temporary credentials in UTC:
 
@@ -127,3 +141,15 @@ The flag `-r <region>` can be used to override the region.
 To actually enforce the use of MFA Devices, you need to assign a proper IAM policy to your IAM user.
 
 AWS has a tutorial to that purpose: [Enable Your Users to Configure Their Own Credentials and MFA Settings](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_users-self-manage-mfa-and-creds.html).
+
+---
+
+# Appendix
+
+## For maintainers of the project
+
+To cross compile and upload the latest version of skuld to [Docker Hub](https://hub.docker.com), do:
+
+1. Log in to the docker hub with the **deepimpact** account, if you did not so already.
+2. Update the **git tag** version in the file `buildx.sh`
+3. Run `buildx.sh`
